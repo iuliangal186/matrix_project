@@ -118,6 +118,14 @@ byte heartCustom[8] = {
   0b00000
 };
 
+// 10 seconds per level
+int levelInterval = 10000;
+
+const int brightnessPin = 5;
+int brightnessValue = 128;
+
+byte matrixBrightnessValue = 2;
+
 // prints for main menu
 void mainMenu(int selected) {
   lcd.setCursor(0, 0);
@@ -199,7 +207,14 @@ void highscore() {
   lcd.setCursor(0, 0);
   lcd.print("Highscore:");
   lcd.setCursor(0, 1);
-  int value = EEPROM.get(0, highscoreValue);
+  int value = EEPROM.read(0);
+  String playerName = "";
+  int lenPlayerNameEEPROM = EEPROM.read(1);
+  for (int i = 0; i < lenPlayerNameEEPROM; i++){
+    playerName += char(EEPROM.read(2 + i));
+  }
+  lcd.print(playerName);
+  lcd.print(": ");
   lcd.print(value);
   if (prevButtonValue != switchValue) {
     if (switchValue == 0) {
@@ -214,35 +229,48 @@ void highscore() {
 void settingsMenu() {
   if (settingsSelected == 1) {
     lcd.setCursor(0, 0);
-    lcd.print(">Difficulty");
+    lcd.print(">Difficulty     ");
     
     lcd.setCursor(0, 1);
     lcd.print(" Change contrast");
   }
   if (settingsSelected == 2) {
     lcd.setCursor(0, 0);
-    lcd.print(" Difficulty");
+    lcd.print(" Difficulty     ");
 
     lcd.setCursor(0, 1);
     lcd.print(">Change contrast");
   }
 
   if (settingsSelected == 3) {
-    lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.print(">Brightness");
+    lcd.print(">Brightness LCD ");
 
     lcd.setCursor(0, 1);
-    lcd.print(" Back");
+    lcd.print(" Brightness M   ");
   } 
   if (settingsSelected == 4) {
-    lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.print(" Brightness");
+    lcd.print(" Brightness LCD ");
 
     lcd.setCursor(0, 1);
-    lcd.print(">Back");
+    lcd.print(">Brightness M   ");
   } 
+  if (settingsSelected == 5) {
+    lcd.setCursor(0, 0);
+    lcd.print(">Enter Name     ");
+
+    lcd.setCursor(0, 1);
+    lcd.print(" Back           ");
+  }
+
+  if (settingsSelected == 6) {
+    lcd.setCursor(0, 0);
+    lcd.print(" Enter Name     ");
+
+    lcd.setCursor(0, 1);
+    lcd.print(">Back           ");
+  }
 }
 
 // change settingsButtonState with joystick
@@ -255,7 +283,7 @@ void settings() {
     if (settingsButtonState == 0) {
       if (yValue > maxThreshold && !yMoved) {
         settingsSelected++;
-        if (settingsSelected > 4)
+        if (settingsSelected > 6)
           settingsSelected = 1;
         yMoved = 1;
       }
@@ -274,6 +302,7 @@ void settings() {
   if (prevSettingsButtonValue != switchValue) {
     if (switchValue == 0) {
       settingsButtonState = !settingsButtonState;
+      lc.clearDisplay(0);
     }
     prevSettingsButtonValue = switchValue;
   }
@@ -360,18 +389,13 @@ void difficultyMenu() {
 
 }
 
-const int brightnessPin = 5;
-int brightnessValue = 128;
-
 // TO DO: brightness like contrast
-void brightness() {
+void LCDbrightness() {
   lcdClearLine(1);
-  lcd.setCursor(0, 0);
-  lcd.print("  Brightness: ");
   lcd.setCursor(0, 1);
-  lcd.print("   < ");
+  lcd.print("Brightness:<");
   lcd.print(brightnessValue);
-  lcd.print(" >");
+  lcd.print(">");
   xValue = analogRead(xPin);
   if (xValue > maxThreshold && !xMoved) {
     if (brightnessValue < 200) {
@@ -391,6 +415,95 @@ void brightness() {
   
 }
 
+void matrixBrightness() {
+  lcdClearLine(1);
+  
+  for (int row = 0; row < matrixSize; row++) {
+    for (int col = 0; col < matrixSize; col++) {
+      lc.setLed(0, col, row, true);
+    }
+  }
+  
+  lcd.setCursor(0, 1);
+  lcd.print("Brightness:<");
+  lcd.print(matrixBrightnessValue);
+  lcd.print(">");
+
+  xValue = analogRead(xPin);
+  if (xValue > maxThreshold && !xMoved) {
+    if (matrixBrightnessValue < 5) {
+      matrixBrightnessValue += 1;
+    }
+    xMoved = 1;
+  }
+  if (xValue < minThreshold && !xMoved) {
+    if (matrixBrightnessValue > 0) {
+      matrixBrightnessValue -= 1;
+    }
+    xMoved = 1;
+  }
+  if (xValue > minThreshold && xValue < maxThreshold) {
+    xMoved = 0;
+  }
+  
+  lc.setIntensity(0, matrixBrightnessValue);
+}
+
+String defaultPlayerName = "Name1";
+String alphabet = "abcdefghijklmnopqrstuvwxyz";
+char letter = alphabet.charAt(0);
+String playerName;
+int iteratorAlphabet = 0;
+
+void enterName() {
+  lcd.setCursor(0, 0);
+  lcd.print("Enter name:<");
+  lcd.print(letter);
+  lcd.print(">");
+  lcd.setCursor(0, 1);
+  lcd.print(playerName);
+  lcd.print("_         ");
+  xValue = analogRead(xPin);
+  yValue = analogRead(yPin);
+
+  if (yValue > maxThreshold && !yMoved) {
+    if (iteratorAlphabet < 25){
+      iteratorAlphabet++;
+      letter = alphabet.charAt(iteratorAlphabet);
+      yMoved = 1;
+    }
+  }
+
+  if (yValue < minThreshold && !yMoved) {
+    if (iteratorAlphabet > 0){
+      iteratorAlphabet--;
+      letter = alphabet.charAt(iteratorAlphabet);
+      yMoved = 1;
+    }
+  }
+
+  if (xValue > maxThreshold && !xMoved) {
+    if (playerName.length() < 10){
+      playerName += letter;
+      xMoved = 1;
+    }
+  }
+
+  if (xValue < minThreshold && !xMoved) {
+    if (playerName.length() > 0) {
+      playerName.remove(playerName.length() - 1, 1);
+      xMoved = 1;
+    }
+  }
+
+  if (yValue > minThreshold && yValue < maxThreshold) {
+    yMoved = 0;
+  }
+  if (xValue > minThreshold && xValue < maxThreshold) {
+    xMoved = 0;
+  }
+}
+
 // depending on what settings was selected will be do some actions
 void settingsSelectedFunction() {
   switch (settingsSelected) {
@@ -398,9 +511,13 @@ void settingsSelectedFunction() {
       break;
     case 2: contrast();
       break;
-    case 3: brightness();
+    case 3: LCDbrightness();
       break;
-    case 4: back();
+    case 4: matrixBrightness();
+      break;
+    case 5: enterName();
+      break;
+    case 6: back();
       break;
     default: break;
   }
@@ -460,20 +577,6 @@ void about() {
   }
 }
 
-
-// TODO: enter player name, for each game or in settings?
-//String alphabet = "abcdefghijklmnopqrstuvwxyz";
-//const int delayEnterName = 200;
-//String playerName = "";
-//int alphabetIterator = 0;
-//
-//void enterName() {
-//  lcd.setCursor(0, 0);
-//  lcd.print(" Enter name: ");
-//  lcd.setCursor(12, 0);
-//  
-//  
-//}
 
 // choose options in main menu
 void selectedFunction() {
@@ -617,7 +720,7 @@ void loseLife() {
   }
 }
 
-// dependion on level, cars will be bigger
+// depending on level, cars will be bigger
 void chooseLevel(int level) {
   // check if the first 3 lines are empty to have car enough space
   bool checkSpace = true; 
@@ -641,6 +744,145 @@ void chooseLevel(int level) {
           lc.setLed(0, 1, randomCol + 1, true);
           matrix[0][randomCol + 1] = 1;
         }
+        break;
+      case 2: randomCol = random(0, 6);
+        if (randomCol % 2) {
+          lc.setLed(0, 0, randomCol, true);
+          matrix[0][randomCol] = 1;
+          lc.setLed(0, 0, randomCol + 1, true);
+          matrix[0][randomCol + 1] = 1;
+          lc.setLed(0, 1, randomCol - 1, true);
+          matrix[1][randomCol - 1] = 1;
+        }
+        else {
+          lc.setLed(0, 0, randomCol, true);
+          matrix[0][randomCol] = 1;
+          lc.setLed(0, 0, randomCol + 1, true);
+          matrix[0][randomCol + 1] = 1;
+        }
+        break; 
+      case 3: randomCol = random(0, 5);
+        if (randomCol % 2) {
+          lc.setLed(0, 0, randomCol, true);
+          matrix[0][randomCol] = 1;
+          lc.setLed(0, 0, randomCol + 1, true);
+          matrix[0][randomCol + 1] = 1;
+          lc.setLed(0, 1, randomCol + 1, true);
+          matrix[1][randomCol + 1] = 1;
+        }
+        else {
+          if (randomCol == 3) {
+            lc.setLed(0, 0, randomCol, true);
+            matrix[0][randomCol] = 1;
+            lc.setLed(0, 0, randomCol + 1, true);
+            matrix[0][randomCol + 1] = 1;
+            lc.setLed(0, 0, randomCol + 2, true);
+            matrix[0][randomCol + 2] = 1;
+          }
+          else {
+            lc.setLed(0, 0, randomCol, true);
+            matrix[0][randomCol] = 1;
+            lc.setLed(0, 0, randomCol + 1, true);
+            matrix[0][randomCol + 1] = 1;
+            lc.setLed(0, 1, randomCol + 2, true);
+            matrix[1][randomCol] = 1;
+          }
+        }
+        break;
+      case 4: randomCol = random(0, 4);
+        if (randomCol == 2) {
+          lc.setLed(0, 0, randomCol, true);
+          matrix[0][randomCol] = 1;
+          lc.setLed(0, 0, randomCol + 1, true);
+          matrix[0][randomCol + 1] = 1;
+          lc.setLed(0, 0, randomCol + 2, true);
+          matrix[0][randomCol + 2] = 1;
+          lc.setLed(0, 0, randomCol + 3, true);
+          matrix[0][randomCol + 3] = 1;
+        }
+        else if (randomCol == 3) {
+          lc.setLed(0, 0, randomCol, true);
+          matrix[0][randomCol] = 1;
+          lc.setLed(0, 0, randomCol + 1, true);
+          matrix[0][randomCol + 1] = 1;
+          lc.setLed(0, 0, randomCol + 2, true);
+          matrix[0][randomCol + 2] = 1;
+          lc.setLed(0, 1, randomCol + 2, true);
+          matrix[1][randomCol + 2] = 1;
+        }
+        else {
+          lc.setLed(0, 0, randomCol, true);
+          matrix[0][randomCol] = 1;
+          lc.setLed(0, 0, randomCol + 1, true);
+          matrix[0][randomCol + 1] = 1;
+          lc.setLed(0, 0, randomCol + 2, true);
+          matrix[0][randomCol + 2] = 1;
+          lc.setLed(0, 1, randomCol, true);
+          matrix[1][randomCol] = 1;
+        }
+        break;
+      case 5: randomCol = random(0, 4);
+        if (randomCol == 2) {
+          lc.setLed(0, 0, randomCol, true);
+          matrix[0][randomCol] = 1;
+          lc.setLed(0, 0, randomCol + 1, true);
+          matrix[0][randomCol + 1] = 1;
+          lc.setLed(0, 0, randomCol + 2, true);
+          matrix[0][randomCol + 2] = 1;
+          lc.setLed(0, 0, randomCol + 3, true);
+          matrix[0][randomCol + 3] = 1;
+          lc.setLed(0, 1, randomCol + 3, true);
+          matrix[1][randomCol + 3] = 1;
+        }
+        else if (randomCol == 3) {
+          lc.setLed(0, 0, randomCol, true);
+          matrix[0][randomCol] = 1;
+          lc.setLed(0, 0, randomCol + 1, true);
+          matrix[0][randomCol + 1] = 1;
+          lc.setLed(0, 0, randomCol + 2, true);
+          matrix[0][randomCol + 2] = 1;
+          lc.setLed(0, 0, randomCol + 3, true);
+          matrix[0][randomCol + 3] = 1;
+          lc.setLed(0, 1, randomCol, true);
+          matrix[1][randomCol] = 1;
+        }
+        else if (randomCol == 4) {
+          lc.setLed(0, 0, randomCol, true);
+          matrix[0][randomCol] = 1;
+          lc.setLed(0, 0, randomCol + 1, true);
+          matrix[0][randomCol + 1] = 1;
+          lc.setLed(0, 0, randomCol + 2, true);
+          matrix[0][randomCol + 2] = 1;
+          lc.setLed(0, 0, randomCol + 3, true);
+          matrix[0][randomCol + 3] = 1;
+          lc.setLed(0, 1, randomCol + 2, true);
+          matrix[1][randomCol + 2] = 1;
+        }
+        else if (randomCol == 1) {
+          lc.setLed(0, 0, randomCol, true);
+          matrix[0][randomCol] = 1;
+          lc.setLed(0, 0, randomCol + 1, true);
+          matrix[0][randomCol + 1] = 1;
+          lc.setLed(0, 0, randomCol + 2, true);
+          matrix[0][randomCol + 2] = 1;
+          lc.setLed(0, 1, randomCol + 1, true);
+          matrix[1][randomCol + 1] = 1;
+          lc.setLed(0, 1, randomCol + 2, true);
+          matrix[1][randomCol + 2] = 1;
+        }
+        else {
+          lc.setLed(0, 0, randomCol, true);
+          matrix[0][randomCol] = 1;
+          lc.setLed(0, 0, randomCol + 1, true);
+          matrix[0][randomCol + 1] = 1;
+          lc.setLed(0, 0, randomCol + 2, true);
+          matrix[0][randomCol + 2] = 1;
+          lc.setLed(0, 1, randomCol + 1, true);
+          matrix[1][randomCol + 1] = 1;
+          lc.setLed(0, 1, randomCol, true);
+          matrix[1][randomCol] = 1;
+        }
+        break;
     default: break;
     }
   }
@@ -660,7 +902,11 @@ void scoreFunction() {
   }
   if (score > highscoreValue) {
     highscoreValue = score;
-    EEPROM.put(0, highscore);
+    EEPROM.put(0, highscoreValue);
+    EEPROM.put(1, playerName.length());
+    for (int i = 0; i < playerName.length(); i++) {
+      EEPROM.put(2 + i, playerName[i]);
+    }
   }
 }
 
@@ -709,6 +955,66 @@ void fallFrequency() {
   }
 }
 
+void gameOver() {
+  lcd.clear();
+  lcd.setCursor(4, 0);
+  lcd.print("Game over!");
+    for (int i = 0; i < 5; i++) {
+    lcd.display();
+    delay(500);
+    lcd.noDisplay();
+    delay(500);
+  }
+  lcd.display();
+
+  displayScore();
+}
+
+void displayScore() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Congratulations!");
+    for (int i = 0; i < 5; i++) {
+    lcd.display();
+    delay(500);
+    lcd.noDisplay();
+    delay(500);
+  }
+  lcd.display();
+  lcd.setCursor(0, 0);
+  lcd.print(" Your score is: ");
+  lcd.setCursor(6, 1);
+  lcd.print(score);
+  delay(5000);
+
+  int scoreSaved = EEPROM.read(0);
+  if (score == scoreSaved) {
+    lcd.setCursor(1, 0);
+    lcd.print("New Highscore!!");
+    for (int i = 0; i < 5; i++) {
+      lcd.display();
+      delay(500);
+      lcd.noDisplay();
+      delay(500);
+    }
+    lcd.display();
+  }    
+  score = 0;
+  for (int row = 0; row < 8; row++) {
+    for (int col = 0; col < 8; col++) {
+      lc.setLed(0, row, col, true);
+      delay(25);
+    }
+  }
+  for (int row = 0; row < 8; row++) {
+     for (int col = 0; col < 8; col++) {
+       lc.setLed(0, row, col, false);
+       delay(25);
+     }
+  }
+  clearMatrix();
+}
+
 void setup() {
   pinMode(swPin, INPUT_PULLUP);
   lc.shutdown(0, false);
@@ -718,8 +1024,6 @@ void setup() {
   lcd.begin(16, 2);
   lcd.createChar(0, heartCustom);
 }
-
-int levelInterval = 10000;
 
 void loop() {
   analogWrite(V0, contrastValue);
@@ -746,7 +1050,7 @@ void loop() {
       start();
       if (level > 5) { // final level = 5
         endGame = 1;
-        level = 0;
+        level = 1;
         startGame = 0;
         buttonState = 0;
 
@@ -775,12 +1079,25 @@ void loop() {
         if (currentTime - startLevelTime >= levelInterval) { // change level after 10s alive
           level++;
           clearMatrix();
-          startLevelTime = millis();
+          if (level <= 5) {
+            startLevelTime = millis();
           }
         }
       }
+      
       else {
+        clearMatrix();
         currentTime = millis();
+        alive = 1;
+        if (lives == 3) { //lives was reset
+          startGame = 0;
+          buttonState = 0;
+          gameOver();
+          clearMatrix();
+        }
+        startLevelTime = millis();
+        
       }
     }
   }
+}
