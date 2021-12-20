@@ -1,7 +1,7 @@
 # Overtaking cars Game
 Overtaking Cars Game is a project made by me during the course Introduction to Robotics. The game mode is as follows: The player has at his disposal a car with which he has to overtake as many cars as possible in order to accumulate a highscore, but if during the overtaking, the car touches another car in traffic, the player will lose a life / heart of the 3 available. On the Ox axis of the joystick the player can move left and right and on the Oy axis he can accelerate when the road is clear. The game has 5 levels that change automatically and 3 difficulty level that can be chosen from the settings. <br>
 <br>
-The game tests your dexterity and become so fun when you challenge a friend to beat your highscore. 
+The game tests your dexterity and become so fun when you challenge a friend to beat your high score. 
 <br>
 Another similar game is the Traffic Rider available on Android and iOS.
 
