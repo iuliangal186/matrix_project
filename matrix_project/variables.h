@@ -77,7 +77,7 @@ int contrastValue = 50;
 int difficulty = 1;
 
 // variable for what page of about will be displayed on LCD
-int pageabout = 0;
+int pageAbout = 0;
 
 
 // first position of car
@@ -153,6 +153,65 @@ const uint64_t loseLifeAnimation[] = {
 
 const int loseLifeAnimationLen = sizeof(loseLifeAnimation)/8;
 
+const uint64_t level2Animation[] = {
+  0x7c04081020444438,
+  0x0000000000000000,
+  0x7c04081020444438,
+  0x0000000000000000,
+  0x7c04081020444438,
+  0x0000000000000000,
+  0x7c04081020444438,
+  0x0000000000000000,
+  0x7c04081020444438
+};
+
+const int level2AnimationLen = sizeof(level2Animation)/8;
+
+const uint64_t level3Animation[] = {
+  0x3844402030404438,
+  0x0000000000000000,
+  0x3844402030404438,
+  0x0000000000000000,
+  0x3844402030404438, 
+  0x0000000000000000,
+  0x3844402030404438,
+  0x0000000000000000,
+  0x3844402030404438
+};
+
+const int level3AnimationLen = sizeof(level3Animation)/8;
+
+const uint64_t level4Animation[] = {
+  0x202020207c242424,
+  0x0000000000000000,
+  0x202020207c242424,
+  0x0000000000000000,
+  0x202020207c242424,
+  0x0000000000000000,
+  0x202020207c242424,
+  0x0000000000000000,
+  0x202020207c242424,
+  0x0000000000000000,
+  0x202020207c242424
+};
+const int level4AnimationLen = sizeof(level4Animation)/8;
+
+const uint64_t level5Animation[] = {
+  0x384440404c34047c,
+  0x0000000000000000,
+  0x384440404c34047c,
+  0x0000000000000000,
+  0x384440404c34047c,
+  0x0000000000000000,
+  0x384440404c34047c,
+  0x0000000000000000,
+  0x384440404c34047c,
+  0x0000000000000000,
+  0x384440404c34047c
+};
+const int level5AnimationLen = sizeof(level5Animation)/8;
+
+
 int highscoreAddressOne = 0;
 int highscoreAddressTwo = 0;
 int highscoreAddressThree = 0;
@@ -175,8 +234,31 @@ int minMatrixBrightness = 0;
 
 
 int maxContrastValue = 150;
-int minContrastValue = 50;
+int minContrastValue = 10;
 
 int nrMaxOfSetiings = 6;
 
 int highscoreSelected = 0;
+
+int address = 0;
+
+const int intervalChangeContrast = 10;
+
+const int maxDifficulty = 3;
+const int minDifficulty = 1;
+
+const int intervalChangeBrightness = 10;
+
+const int maxBrighntessValue = 200;
+const int minBrighntessValue = 0;
+
+const int maxLenPlayerName = 10;
+
+const int maxPageAbout = 2;
+
+int noteDuration;
+int pauseBetweenNotes;
+
+bool resetLives = 0;
+
+bool nameQuestion = 0;

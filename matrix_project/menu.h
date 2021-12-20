@@ -1,3 +1,32 @@
+//functions for save and get data from eeprom (difficulty, contrast, brightness, highscore)
+void saveDataToEEPROM() {
+  address = 0;
+  EEPROM.put(address, difficulty);
+  address += sizeof(int);
+  EEPROM.put(address, contrastValue);
+  address += sizeof(int);
+  EEPROM.put(address, brightnessValue);
+  address += sizeof(int);
+  EEPROM.put(address, matrixBrightnessValue);
+  address += sizeof(int);
+  EEPROM.put(address, highscoreValue);
+  address += sizeof(int);
+}
+
+void getDataFormEEPROM() {
+  address = 0;
+  EEPROM.get(address, difficulty);
+  address += sizeof(int);
+  EEPROM.get(address, contrastValue);
+  address += sizeof(int);
+  EEPROM.get(address, brightnessValue);
+  address += sizeof(int);
+  EEPROM.get(address, matrixBrightnessValue);
+  address += sizeof(int);
+  EEPROM.get(address, highscoreValue);
+  address += sizeof(int);
+}
+
 // prints for main menu
 void mainMenu(int selected) {
   lcd.setCursor(0, 0);
@@ -61,6 +90,33 @@ void menuSelect() {
 
 // when press play this will be displayed on LCD
 void start() {
+  if (nameQuestion == 0) {
+    lcd.setCursor(0, 0);
+    lcd.print("Your name is:   ");
+    lcd.setCursor(0, 1);
+    lcd.print(playerName);
+    lcd.print("                ");
+    delay(2000);
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Change your name");
+    lcd.setCursor(0, 1);
+    lcd.print(" from settings  ");
+    delay(2000);
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print(" if that is not ");
+    lcd.setCursor(0, 1);
+    lcd.print("   your name    ");
+    delay(2000);
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("   Let's gooo!  ");
+    delay(2000);
+    lcd.clear();
+    nameQuestion = 1;
+    startLevelTime = millis(); //reinitialize because level 1 duration = 2 sec due to the dealy
+  }
   lcd.setCursor(12, 0);
   lcd.print(lives);
   lcd.write((byte)0);
@@ -71,12 +127,13 @@ void start() {
   lcd.print(level);
   lcd.print("     ");
   lcd.setCursor(0, 1);
-  lcd.print("    Score:");
+  lcd.print("    Score: ");
   lcd.setCursor(11, 1);
   lcd.print(score);
   lcd.print("    ");
 }
 
+// top in highscore: page 1 with top 1 and page 2 with top 2 and 3
 void highscoreSelectPage() {
   yValue = analogRead(yPin);
   if (yValue > maxThreshold && !yMoved) {
@@ -100,51 +157,52 @@ void highscore() {
     lcd.print("Highscore:      ");
     lcd.setCursor(0, 1);
     lcd.print("1. ");
-    int value = EEPROM.read(addressOneEEPROM);
+    getDataFormEEPROM();
     String playerName = "";
-    int lenPlayerNameEEPROM = EEPROM.read(addressOneEEPROM + 1);
+    int lenPlayerNameEEPROM;
+    EEPROM.get(address, lenPlayerNameEEPROM);
+    char chr;
     for (int i = 0; i < lenPlayerNameEEPROM; i++){
-       playerName += char(EEPROM.read(addressOneEEPROM + 2 + i));
+       EEPROM.get(address + i + sizeof(int), chr);
+       playerName += char(chr);
     }
     
     lcd.print(playerName);
     lcd.print(": ");
-    lcd.print(value);
-    lcd.print(" ");
-    lcd.print(lenPlayerNameEEPROM);
+    lcd.print(highscoreValue);
     lcd.print("             ");
   }
 
   if (highscoreSelected == 1) {
     lcd.setCursor(0, 0);
-    lcd.print("2. ");
-    int value = EEPROM.read(addressTwoEEPROM);
-    String playerName = "";
-    int lenPlayerNameEEPROM = EEPROM.read(addressTwoEEPROM + 1);
-    for (int i = 0; i < lenPlayerNameEEPROM; i++){
-       playerName += char(EEPROM.read(addressTwoEEPROM + 2 + i));
-    }
-    lcd.print(playerName);
-    lcd.print(": ");
-    lcd.print(value);
-    lcd.print(" ");
-    lcd.print(lenPlayerNameEEPROM);
-    lcd.print("             ");
+    lcd.print("2. !Implemented ");
+//    int value = EEPROM.read(addressTwoEEPROM);
+//    String playerName = "";
+//    int lenPlayerNameEEPROM = EEPROM.read(addressTwoEEPROM + 1);
+//    for (int i = 0; i < lenPlayerNameEEPROM; i++){
+//       playerName += char(EEPROM.read(addressTwoEEPROM + 2 + i));
+//    }
+//    lcd.print(playerName);
+//    lcd.print(": ");
+//    lcd.print(value);
+//    lcd.print(" ");
+//    lcd.print(lenPlayerNameEEPROM);
+//    lcd.print("             ");
 
     lcd.setCursor(0, 1);
-    lcd.print("3. ");
-    value = EEPROM.read(addressThreeEEPROM);
-    playerName = "";
-    lenPlayerNameEEPROM = EEPROM.read(addressThreeEEPROM + 1);
-    for (int i = 0; i < lenPlayerNameEEPROM; i++){
-       playerName += char(EEPROM.read(addressThreeEEPROM + 2 + i));
-    }
-    lcd.print(playerName);
-    lcd.print(": ");
-    lcd.print(value);
-    lcd.print(" ");
-    lcd.print(lenPlayerNameEEPROM);
-    lcd.print("             ");
+    lcd.print("3. !Implemented ");
+//    value = EEPROM.read(addressThreeEEPROM);
+//    playerName = "";
+//    lenPlayerNameEEPROM = EEPROM.read(addressThreeEEPROM + 1);
+//    for (int i = 0; i < lenPlayerNameEEPROM; i++){
+//       playerName += char(EEPROM.read(addressThreeEEPROM + 2 + i));
+//    }
+//    lcd.print(playerName);
+//    lcd.print(": ");
+//    lcd.print(value);
+//    lcd.print(" ");
+//    lcd.print(lenPlayerNameEEPROM);
+//    lcd.print("             ");
   }
 
   
@@ -223,7 +281,7 @@ void settings() {
       if (yValue < minThreshold && !yMoved) {
         settingsSelected--;
         if (settingsSelected < 1)
-          settingsSelected = 6;
+          settingsSelected = nrMaxOfSetiings;
         yMoved = 1;
       }
       if (yValue > minThreshold && yValue < maxThreshold) {
@@ -252,13 +310,13 @@ void contrast() {
   xValue = analogRead(xPin);
   if (xValue > maxThreshold && !xMoved) {
     if (contrastValue < maxContrastValue) {
-      contrastValue += 10;
+      contrastValue += intervalChangeContrast;
     }
     xMoved = 1;
   }
   if (xValue < minThreshold && !xMoved) {
     if (contrastValue > minContrastValue) {
-      contrastValue -= 10;
+      contrastValue -= intervalChangeContrast;
     }
     xMoved = 1;
   }
@@ -299,14 +357,14 @@ void difficultySelect() {
     if (settingsButtonState == 1) {
       if (xValue > maxThreshold && !xMoved) {
         difficulty++;
-        if (difficulty > 3)
-          difficulty = 1;
+        if (difficulty > maxDifficulty)
+          difficulty = minDifficulty;
         xMoved = 1;
       }
       if (xValue < minThreshold && !xMoved) {
         difficulty--;
-        if (difficulty < 1)
-          difficulty = 3;
+        if (difficulty < minDifficulty)
+          difficulty = maxDifficulty;
         xMoved = 1;
       }
       if (xValue > minThreshold && xValue < maxThreshold) {
@@ -331,14 +389,14 @@ void LCDbrightness() {
   lcd.print(">");
   xValue = analogRead(xPin);
   if (xValue > maxThreshold && !xMoved) {
-    if (brightnessValue < 200) {
-      brightnessValue += 10;
+    if (brightnessValue < maxBrighntessValue) {
+      brightnessValue += intervalChangeBrightness;
     }
     xMoved = 1;
   }
   if (xValue < minThreshold && !xMoved) {
-    if (brightnessValue > 0) {
-      brightnessValue -= 10;
+    if (brightnessValue > minBrighntessValue) {
+      brightnessValue -= intervalChangeBrightness;
     }
     xMoved = 1;
   }
@@ -410,7 +468,7 @@ void enterName() {
   }
 
   if (xValue > maxThreshold && !xMoved) {
-    if (playerName.length() < 10){
+    if (playerName.length() < maxLenPlayerName){
       playerName += letter;
       xMoved = 1;
     }
@@ -458,19 +516,19 @@ void settingsSelectedFunction() {
 
 // BACK TO MAIN MENU
 // about has 3 page 
-// pageabout = 0 => page 1
-// pageabout = 1 => page 2
-// pageabout > 1 => page 3
+// pageAbout = 0 => page 1
+// pageAbout = 1 => page 2
+// pageAbout > 1 => page 3
 void about() {
   xValue = analogRead(xPin);
   if (xValue < minThreshold) {
     if (xMoved == false) {
-      if (pageabout > 2) {
-        pageabout = 0;
+      if (pageAbout > maxPageAbout) {
+        pageAbout = 0;
         lcd.clear();
       }
       else {
-        pageabout ++;
+        pageAbout ++;
         
       }
       xMoved = true;
@@ -479,19 +537,19 @@ void about() {
   else {
     xMoved = false;
   }
-  if (pageabout == 0) {
+  if (pageAbout == 0) {
     lcd.setCursor(0, 0);
     lcd.print("   Credits:     ");
     lcd.setCursor(0, 1);
     lcd.print("  Iulian Gal    ");
   }
-  else if (pageabout == 1) {
+  else if (pageAbout == 1) {
     lcd.setCursor(0, 0);
     lcd.print("    GitHub:     ");
     lcd.setCursor(0, 1);
     lcd.print("tinyurl.com/2fcr3ev6");
   }
-  else if (pageabout == 2) {
+  else if (pageAbout == 2) {
     lcd.setCursor(0, 0);
     lcd.print("  Game Name:    ");
     lcd.setCursor(0, 1);

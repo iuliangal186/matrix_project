@@ -5,7 +5,7 @@ void turnOffCar(int col, int row) {
   lc.setLed(0, row, col, false);
   lc.setLed(0, row + 1, col, false);
   lc.setLed(0, row + 1, col + 1, false);
-  lc.setLed(0, row + 1, col - 1, false);
+  lc.setLed(0, row, col + 1, false);
 }
 
 // turn on the next position of car
@@ -24,11 +24,6 @@ void clearMatrix() {
     }
 }
 
-// when the car hits another car, the matrix will be deleted
-void died() {
-  clearMatrix();
-}
-
 // lives-- when car hits another car
 // if we have 0 lives the game will be reset (level = 1, lives = 3);
 void loseLife() {
@@ -40,14 +35,15 @@ void loseLife() {
   }
   if (lives == 0) {
    for (int thisNote = 0; thisNote < 8; thisNote++) {
-      int noteDuration = 1000/noteDurations[thisNote];
-      tone(13, melody[thisNote],noteDuration);
-      int pauseBetweenNotes = noteDuration * 1.30;
+      noteDuration = 1000 / noteDurations[thisNote];
+      tone(13, melody[thisNote], noteDuration);
+      pauseBetweenNotes = noteDuration * 1.30;
       delay(pauseBetweenNotes);
       noTone(12);    
     }
     level = 1;
     lives = 3;
+    resetLives = 1;
   }
 }
 
@@ -233,40 +229,12 @@ void scoreFunction() {
     }
   }
 
-  if (score > highscoreAddressOne) {
-    varForCopyHighscores = EEPROM.read(addressTwoEEPROM);
-    varForCopyLens = EEPROM.read(addressTwoEEPROM + 1);
-    for (int i = 0; i < varForCopyLens; i++) {
-      varForCopyNames += EEPROM.read(addressTwoEEPROM + 2 + i);
-    }
-
-    EEPROM.update(addressThreeEEPROM, varForCopyHighscores);
-    EEPROM.update(addressThreeEEPROM, varForCopyLens);
-    for (int i = 0; i < varForCopyLens; i++) {
-      EEPROM.update(addressThreeEEPROM + 2 + i, varForCopyNames[i]);
-    }
-
-    varForCopyHighscores = 0;
-    varForCopyLens = 0;
-    varForCopyNames = "";
-
-    varForCopyHighscores = EEPROM.read(addressOneEEPROM);
-    varForCopyLens = EEPROM.read(addressOneEEPROM + 1);
-    for (int i = 0; i < varForCopyLens; i++) {
-      varForCopyNames += EEPROM.read(addressOneEEPROM + 2 + i);
-    }
-
-    EEPROM.update(addressTwoEEPROM, varForCopyHighscores);
-    EEPROM.update(addressTwoEEPROM, varForCopyLens);
-    for (int i = 0; i < varForCopyLens; i++) {
-      EEPROM.update(addressTwoEEPROM + 2 + i, varForCopyNames[i]);
-    }
-    
-    highscoreAddressOne = score;
-    EEPROM.update(0, highscoreValue);
-    EEPROM.update(1, playerName.length());
+  if (score > highscoreValue) {
+    highscoreValue = score;
+    saveDataToEEPROM();
+    EEPROM.put(address, playerName.length());
     for (int i = 0; i < playerName.length(); i++) {
-      EEPROM.update(2 + i, playerName[i]);
+      EEPROM.put(address + i + sizeof(int), playerName[i]);
     }
   }
 }
@@ -317,7 +285,8 @@ void fallFrequency() {
   }
 }
 
-
+// depending on joystick this function calls funtions wrote before
+// and make the game logic
 void moveJoystick() {
   xValue = analogRead(xPin);
   yValue = analogRead(yPin);
@@ -346,17 +315,22 @@ void moveJoystick() {
     fall();
     loseLife();
     scoreFunction();
-    fall();
-    loseLife();
-    scoreFunction();
+    if (resetLives == 0) { // if block that solved the bug with 1 live remaining => 2 lives if car hit another car in fast forward mode
+      fall();
+      loseLife();
+      scoreFunction();
+    }
     yMoved = true;
-  } //fast forward
+  } //fast forward with some bugs: 
+    //if hit one car in fast forward mode lives decrease with 2 or 0
+    //depending on phase in which is fastforward (start or final)
 
   if (yValue >= minThreshold && yValue <= maxThreshold) {
     yMoved = false;
   }
 }
 
+// messages from final game
 void displayScore() {
   lcd.clear();
   lcd.setCursor(0, 0);
@@ -374,8 +348,8 @@ void displayScore() {
   lcd.print(score);
   delay(5000);
 
-  int scoreSaved = EEPROM.read(addressOneEEPROM);
-  if (score > scoreSaved) {
+  getDataFormEEPROM();
+  if (score == highscoreValue) { //highscore was changed in scoreFunction
     lcd.setCursor(1, 0);
     lcd.print("New Highscore!!");
     for (int i = 0; i < 5; i++) {
@@ -387,6 +361,7 @@ void displayScore() {
     lcd.display();
   }    
   score = 0;
+  resetLives = 0;
   for (int row = 0; row < 8; row++) {
     for (int col = 0; col < 8; col++) {
       lc.setLed(0, row, col, true);
@@ -400,6 +375,7 @@ void displayScore() {
      }
   }
   clearMatrix();
+  nameQuestion = 0;
 }
 
 void gameOver() {
@@ -416,6 +392,7 @@ void gameOver() {
 
   displayScore();
 }
+
 
 void animation(uint64_t image) {
   for (int i = 0; i < 8; i++) {

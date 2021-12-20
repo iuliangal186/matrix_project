@@ -27,8 +27,6 @@
 //*carMoves() - when player car dosen't touch another car he can move left and right for overtaking
 //*checkFinalGame() - checks if the player reach the final game (level 5) and the game will be reset form level 1
 
-
-
 #include "LedControl.h"
 #include <EEPROM.h>
 #include <LiquidCrystal.h>
@@ -45,10 +43,11 @@ void setup() {
   randomSeed(analogRead(2));
   lcd.begin(16, 2);
   lcd.createChar(0, heartCustom);
-  
+  getDataFormEEPROM();
 }
 
 void loop() {
+  saveDataToEEPROM();
   analogWrite(V0, contrastValue);
   analogWrite(brightnessPin, brightnessValue);
   switchValue = digitalRead(swPin);
@@ -62,7 +61,6 @@ void loop() {
         carMoves();
       } else {
         loseLifeAndReset();
-        
       }
     }
   }
