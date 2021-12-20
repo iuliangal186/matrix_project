@@ -21,6 +21,10 @@ Materials Required:
 * breadboard - 3pcs
 * a lot of cables ~ 40pcs
 
+<img src="https://user-images.githubusercontent.com/61587939/146786311-ec1cce17-2be8-47e1-97f9-11356423b31d.jpg" width=650 height=700>
+
+
+
 Video Demo: TBA
 
 
